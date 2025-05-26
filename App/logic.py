@@ -1,8 +1,10 @@
 import time
 import csv
-import hash_table as ht  
-import graph as gr        
-
+from DataStructures.Graph import digraph as gr     
+from DataStructures.List import single_linked_list as lt
+from DataStructures.Map import map_linear_probing as mp  
+from DataStructures import list as lt
+from DataStructures import array as arr
 
 def new_logic():
     """
@@ -45,21 +47,21 @@ def load_data(catalog, filename):
                 # Crear vértices si no existen
                 if not gr.contains_vertex(grafo, origen):
                     gr.insert_vertex(grafo, origen)
-                    tabla_origen = ht.new_table()
-                    ht.put(tabla_origen, pedido_id, domiciliario_id)
+                    tabla_origen = mp.new_map()
+                    mp.put(tabla_origen, pedido_id, domiciliario_id)
                     mp.put(info_nodos, origen, tabla_origen)
                 else:
                     tabla_origen = mp.get(info_nodos, origen)
-                    ht.put(tabla_origen, pedido_id, domiciliario_id)
+                    mp.put(tabla_origen, pedido_id, domiciliario_id)
 
                 if not gr.contains_vertex(grafo, destino):
                     gr.insert_vertex(grafo, destino)
-                    tabla_destino = ht.new_table()
-                    ht.put(tabla_destino, pedido_id, domiciliario_id)
+                    tabla_destino = mp.new_map()
+                    mp.put(tabla_destino, pedido_id, domiciliario_id)
                     mp.put(info_nodos, destino, tabla_destino)
                 else:
                     tabla_destino = mp.get(info_nodos, destino)
-                    ht.put(tabla_destino, pedido_id, domiciliario_id)
+                    mp.put(tabla_destino, pedido_id, domiciliario_id)
 
                 # Clave para guardar la acumulación de tiempos
                 clave_arista = origen + "->" + destino
@@ -74,7 +76,7 @@ def load_data(catalog, filename):
                     cuenta += 1
                     promedio = suma // cuenta
                     mp.put(info_nodos, clave_arista, [suma, cuenta])
-                    gr.update_edge(grafo, origen, destino, promedio)
+                    gr.add_edge(grafo, origen, destino, promedio)
 
             except:
                 # Por si hay filas con errores 
