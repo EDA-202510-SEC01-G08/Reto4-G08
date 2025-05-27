@@ -1,4 +1,13 @@
 import sys
+import time
+import csv
+from App import logic as lg
+import tabulate as tb
+from DataStructures.Graph import digraph as gr     
+from DataStructures.List import single_linked_list as lt
+from DataStructures.Map import map_linear_probing as mp  
+from DataStructures import list as lt
+from DataStructures import array as arr
 
 
 def new_logic():
@@ -6,7 +15,7 @@ def new_logic():
         Se crea una instancia del controlador
     """
     #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
-    pass
+    return lg.new_logic()
 
 def print_menu():
     print("Bienvenido")
@@ -26,7 +35,20 @@ def load_data(control):
     Carga los datos
     """
     #TODO: Realizar la carga de datos
-    pass
+    file = input("Ingrese el nombre del archivo a cargar: ")
+    file_path = f"Data/Data/deliverytime_{file}.csv" 
+
+    resumen = lg.load_data(control, file_path)
+
+    print("\nResumen de la carga de datos:")
+    print(f"• Número total de domicilios procesados: {resumen['total_domicilios']}")
+    print(f"• Número total de domiciliarios identificados: {resumen['total_domiciliarios']}")
+    print(f"• Número total de nodos en el grafo creado: {resumen['total_nodos']}")
+    print(f"• Número de arcos en el grafo creado: {resumen['total_arcos']}")
+    print(f"• Número de restaurantes identificados por su ubicación geográfica: {resumen['total_restaurantes']}")
+    print(f"• Número de ubicaciones donde han llegado los domiciliarios: {resumen['total_destinos']}")
+    print(f"• Promedio de tiempo de entrega de todos los domicilios procesados: {resumen['promedio_tiempo']:.2f} minutos")
+
 
 
 def print_data(control, id):

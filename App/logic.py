@@ -27,6 +27,11 @@ def load_data(catalog, filename):
     graph = catalog["grafo"]
     info_tiempo = catalog["info_tiempo"]
 
+    total_domicilios = 0
+    domiciliarios = []
+    restaurantes = []
+    destinos = []
+
     with open(filename, newline='', encoding='utf-8') as archivo:
         lector = csv.DictReader(archivo)
         for fila in lector:
@@ -75,9 +80,33 @@ def load_data(catalog, filename):
                     promedio = suma // cuenta
                     mp.put(info_tiempo, clave_arista, [suma, cuenta])
                     gr.add_edge(catalog, origen, destino, promedio)
+
+                total_domicilios += 1
+                suma_tiempos += tiempo
+                if domiciliario_id not in domiciliarios:
+                    domiciliarios.append(domiciliario_id)
+                if origen not in restaurantes:
+                    restaurantes.append(origen)
+                if destino not in destinos:
+                    destinos.append(destino)
+
             except:
                 # Por si hay filas con errores 
                 continue
+    # Número de arcos (no dirigidos, contar solo una vez)
+    num_arcos = len(graph["edges"])//2 if hasattr(gr, 'num_edges') else len(set(
+        tuple(sorted(edge)) for edge in graph["edges"]
+    ))  
+
+    return {
+        "total_domicilios": total_domicilios,
+        "total_domiciliarios": len(domiciliarios),
+        "total_nodos": len(graph["vertices"]),
+        "total_arcos": num_arcos,
+        "total_restaurantes": len(restaurantes),
+        "total_destinos": len(destinos),
+        "promedio_tiempo": (suma_tiempos / total_domicilios) if total_domicilios > 0 else 0
+    }
 
 # Funciones de consulta sobre el catálogo
 
