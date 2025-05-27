@@ -11,10 +11,9 @@ def new_logic():
     Crea el catalogo para almacenar las estructuras de datos
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos
-    catalog = {
-        "grafo": gr.new_graph(dirigido=False),  
-        "info_nodos": mp.new_map()              
-    }
+    catalog = {"grafo" : gr.new_graph(dirigido=False),
+               "info_tiempo": mp.new_map(10000, 0.5)}            
+    
     return catalog
 
 
@@ -25,8 +24,8 @@ def load_data(catalog, filename):
     Carga los datos del reto
     """
     # TODO: Realizar la carga de datos
-    grafo = catalog["grafo"]
-    info_nodos = catalog["info_nodos"]
+    graph = catalog["grafo"]
+    info_tiempo = catalog["info_tiempo"]
 
     with open(filename, newline='', encoding='utf-8') as archivo:
         lector = csv.DictReader(archivo)
@@ -45,39 +44,37 @@ def load_data(catalog, filename):
                 destino = str(lat_dest) + "," + str(lon_dest)
 
                 # Crear vértices si no existen
-                if not gr.contains_vertex(grafo, origen):
-                    gr.insert_vertex(grafo, origen)
-                    tabla_origen = mp.new_map()
+                if not gr.contains_vertex(graph, origen):
+                    tabla_origen = mp.new_map(10000, 0.5)
+                    gr.insert_vertex(graph, origen, tabla_origen)
                     mp.put(tabla_origen, pedido_id, domiciliario_id)
-                    mp.put(info_nodos, origen, tabla_origen)
                 else:
-                    tabla_origen = mp.get(info_nodos, origen)
+                    tabla_origen = gr.get_vertex_information(graph, origen)
                     mp.put(tabla_origen, pedido_id, domiciliario_id)
 
-                if not gr.contains_vertex(grafo, destino):
-                    gr.insert_vertex(grafo, destino)
+                if not gr.contains_vertex(graph, destino):
                     tabla_destino = mp.new_map()
+                    gr.insert_vertex(graph, destino, tabla_destino)
                     mp.put(tabla_destino, pedido_id, domiciliario_id)
-                    mp.put(info_nodos, destino, tabla_destino)
                 else:
-                    tabla_destino = mp.get(info_nodos, destino)
+                    tabla_destino = gr.get_vertex_information(graph, destino)
                     mp.put(tabla_destino, pedido_id, domiciliario_id)
 
                 # Clave para guardar la acumulación de tiempos
                 clave_arista = origen + "->" + destino
 
                 # Agregar o actualizar la arista
-                if gr.get_edge(grafo, origen, destino) is None:
-                    mp.put(info_nodos, clave_arista, [tiempo, 1])
-                    gr.add_edge(grafo, origen, destino, tiempo)
+                if gr.get_edge(graph, origen, destino) is None:
+                    mp.put(info_tiempo, clave_arista, [tiempo, 1])
                 else:
-                    suma, cuenta = mp.get(info_nodos, clave_arista)
+                    mp.remove(graph["vertices"][mp.get(graph["vertices"], origen)]["adjacents"], destino)
+                    mp.remove(graph["vertices"][mp.get(graph["vertices"], destino)]["adjacents"], origen)
+                    suma, cuenta = mp.get(info_tiempo, clave_arista)
                     suma += tiempo
                     cuenta += 1
                     promedio = suma // cuenta
-                    mp.put(info_nodos, clave_arista, [suma, cuenta])
-                    gr.add_edge(grafo, origen, destino, promedio)
-
+                    mp.put(info_tiempo, clave_arista, [suma, cuenta])
+                    gr.add_edge(catalog, origen, destino, promedio)
             except:
                 # Por si hay filas con errores 
                 continue
