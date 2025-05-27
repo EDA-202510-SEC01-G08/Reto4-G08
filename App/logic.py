@@ -7,6 +7,7 @@ from DataStructures import list as lt
 from DataStructures.List import array_list as ar
 from DataStructures.Graph import bfs as bfs
 from DataStructures.Graph import dfs as dfs
+from DataStructures.Stack import stack as st
 
 def new_logic():
     """
@@ -54,16 +55,17 @@ def load_data(catalog, filename):
                 # Crear vértices si no existen
                 if not gr.contains_vertex(graph, origen):
                     tabla_origen = mp.new_map(10000, 0.5)
-                    gr.insert_vertex(graph, origen, tabla_origen)
+                    gr.insert_vertex(graph, origen, (tabla_origen, True))
                     mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
                 else:
                     tabla_origen = gr.get_vertex_information(graph, origen)
                     mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
 
                 if not gr.contains_vertex(graph, destino):
-                    tabla_destino = mp.new_map()
-                    gr.insert_vertex(graph, destino, tabla_destino)
+                    tabla_destino = mp.new_map(10000, 0.5)
+                    gr.insert_vertex(graph, destino, (tabla_destino, False))
                     mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
+                   
                 else:
                     tabla_destino = gr.get_vertex_information(graph, destino)
                     mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
@@ -131,33 +133,30 @@ def req_1(catalog,origen,destino):
 
 
     if not gr.contains_vertex(grafo, origen) or not gr.contains_vertex(grafo, destino):
-        return {"mensaje": "Uno o ambos puntos no existen", "tiempo": 0}
+        return None
 
-    dfs_result = dfs.dfs(grafo, origen)
+    bfs_result = bfs.bfs(grafo, origen)
 
-    if not dfs.has_path_to(dfs_result, destino):
-        return {"mensaje": "No hay camino entre los puntos", "tiempo": 0}
+    if not bfs.has_path_to(bfs_result, destino):
+        return 0
 
-    camino = dfs.path_to(dfs_result, destino)  # lista de ubicaciones desde origen a destino
-    cantidad_puntos = len(camino)
+    camino = bfs.path_to(bfs_result, destino)  # lista de ubicaciones desde origen a destino
+    cantidad_puntos = st.size(camino)
 
-   
     domiciliarios = ar.new_list()
     restaurantes = ar.new_list()
 
-    for i in range(len(camino)):
-        punto = camino[i]
-        tabla_info = gr.get_vertex_information(grafo, punto)
-        if tabla_info:
-            # Recorremos todos los domiciliarios registrados en ese punto
-            values = mp.value_set(tabla_info)
-            for j in range(len(values)):
-                dom_id = values[j]
-                if dom_id not in domiciliarios:
-                    ar.add_last(domiciliarios, dom_id)
-        # El primer punto es el restaurante
-        if i == 0 and punto not in restaurantes:
+    for i in range(cantidad_puntos):
+        punto = ar.get_element(camino,i)
+        tabla_info = gr.get_vertex_information(grafo, punto)[0]
+        rest = gr.get_vertex_information(grafo, punto)[1]
+        if rest:
             ar.add_last(restaurantes, punto)
+        info_pedidos = mp.value_set(tabla_info)
+        for domicilio in info_pedidos["elements"]:
+            domiciliario = domicilio["domiciliario_id"]
+            if domiciliario not in domiciliarios["elements"]:
+                ar.add_last(domiciliarios, domiciliario)
 
     end_time = get_time()
     time = str(round(delta_time(start_time, end_time),2)) + "ms"
