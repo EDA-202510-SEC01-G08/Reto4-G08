@@ -187,25 +187,22 @@ def req_3(catalog, punto):
     grafo = catalog["grafo"]
 
     if not gr.contains_vertex(grafo, punto):
-        return {
-            "mensaje": "El punto no existe en el grafo",
-            "tiempo": "0ms"
-        }
+        return None
 
-    tabla_pedidos = gr.get_vertex_information(grafo, punto)
+    tabla_pedidos = gr.get_vertex_information(grafo, punto)[0]
     conteo = {}     # clave: domiciliario_id, valor: cantidad de pedidos
     vehiculos = {}  # clave: domiciliario_id, valor: dict con tipos de vehículo y conteo
-
-    for pedido_id in mp.key_set(tabla_pedidos):
+    pedidos = mp.key_set(tabla_pedidos)
+    for pedido_id in pedidos:
         datos = mp.get(tabla_pedidos, pedido_id)
         dom_id = datos["domiciliario_id"]
         vehiculo = datos["vehiculo"]
 
         if dom_id not in conteo:
-            conteo[dom_id] = 0
+            conteo[dom_id] = 1
             vehiculos[dom_id] = {}
-
-        conteo[dom_id] += 1
+        else:
+            conteo[dom_id] += 1
 
         if vehiculo not in vehiculos[dom_id]:
             vehiculos[dom_id][vehiculo] = 1
@@ -223,7 +220,8 @@ def req_3(catalog, punto):
     # Tipo de vehículo más usado por ese domiciliario
     tipo_vehiculo = None
     max_veces = 0
-    for veh, veces in vehiculos[max_dom].items():
+    for veh in vehiculos[max_dom]:
+        veces = vehiculos[max_dom][veh]
         if veces > max_veces:
             tipo_vehiculo = veh
             max_veces = veces
