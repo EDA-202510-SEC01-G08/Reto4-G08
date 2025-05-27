@@ -30,9 +30,9 @@ def load_data(catalog, filename):
     info_tiempo = catalog["info_tiempo"]
 
     total_domicilios = 0
-    domiciliarios = []
-    restaurantes = []
-    destinos = []
+    domiciliarios = ar.new_list()
+    restaurantes = ar.new_list()
+    destinos = ar.new_list()
 
     with open(filename, newline='', encoding='utf-8') as archivo:
         lector = csv.DictReader(archivo)
@@ -86,12 +86,12 @@ def load_data(catalog, filename):
 
                 total_domicilios += 1
                 suma_tiempos += tiempo
-                if domiciliario_id not in domiciliarios:
-                    domiciliarios.append(domiciliario_id)
-                if origen not in restaurantes:
-                    restaurantes.append(origen)
-                if destino not in destinos:
-                    destinos.append(destino)
+                if domiciliario_id not in domiciliarios["elements"]:
+                    ar.add_last(domiciliarios, domiciliario_id)
+                if origen not in restaurantes["elements"]:
+                    ar.add_last(restaurantes, origen)
+                if destino not in destinos["elements"]:
+                    ar.add_last(destinos, destino)
 
             except:
                 # Por si hay filas con errores 
@@ -103,11 +103,11 @@ def load_data(catalog, filename):
 
     return {
         "total_domicilios": total_domicilios,
-        "total_domiciliarios": len(domiciliarios),
-        "total_nodos": len(graph["vertices"]),
+        "total_domiciliarios": domiciliarios["size"],
+        "total_nodos": graph["vertices"]["table"]["size"],
         "total_arcos": num_arcos,
-        "total_restaurantes": len(restaurantes),
-        "total_destinos": len(destinos),
+        "total_restaurantes": restaurantes["size"],
+        "total_destinos": destinos["size"],
         "promedio_tiempo": (suma_tiempos / total_domicilios) if total_domicilios > 0 else 0
     }
 
