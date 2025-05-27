@@ -135,12 +135,12 @@ def req_1(catalog,origen,destino):
     if not gr.contains_vertex(grafo, origen) or not gr.contains_vertex(grafo, destino):
         return None
 
-    bfs_result = bfs.bfs(grafo, origen)
+    dfs_result = dfs.dfs(grafo, origen)
 
-    if not bfs.has_path_to(bfs_result, destino):
+    if not dfs.has_path_to(dfs_result, destino):
         return 0
 
-    camino = bfs.path_to(bfs_result, destino)  # lista de ubicaciones desde origen a destino
+    camino = bfs.path_to(dfs_result, destino)  # lista de ubicaciones desde origen a destino
     cantidad_puntos = st.size(camino)
 
     domiciliarios = ar.new_list()
