@@ -246,47 +246,39 @@ def req_4(catalog, punto_a, punto_b):
     grafo = catalog["grafo"]
 
     if not gr.contains_vertex(grafo, punto_a) or not gr.contains_vertex(grafo, punto_b):
-        return {
-            "mensaje": "Uno o ambos puntos no existen en el grafo",
-            "tiempo": "0ms"
-        }
+        return None
 
     # Obtener recorrido desde punto_a usando BFS
     bfs_result = bfs.bfs(grafo, punto_a)
 
     if not bfs.has_path_to(bfs_result, punto_b):
-        return {
-            "mensaje": "No hay camino entre los dos puntos",
-            "tiempo": "0ms"
-        }
+        return 0
 
     camino = bfs.path_to(bfs_result, punto_b)
     listas_domiciliarios = ar.new_list()
 
-    for punto in camino:
-        pedidos = gr.get_vertex_information(grafo, punto)
-        lista = []
-        for pedido in mp.key_set(pedidos):
-            info = mp.get(pedidos, pedido)
-            dom_id = info["domiciliario_id"]
-            if dom_id not in lista:
+    for punto in camino["elements"]:
+        pedidos = gr.get_vertex_information(grafo, punto)[0]
+        lista = ar.new_list()
+        info_ped = mp.value_set(pedidos)
+        for pedido in info_ped:
+            dom_id = pedido["domiciliario_id"]
+            if dom_id not in lista["elements"]:
                 ar.add_last(lista, dom_id)
         ar.add_last(listas_domiciliarios, lista)
 
     # Intersección de todas las listas sin usar set
-    if listas_domiciliarios:
-        comunes = []
-        primera = listas_domiciliarios[0]
-        for dom in primera:
-            esta_en_todas = True
-            for lista in listas_domiciliarios[1:]:
-                if dom not in lista:
-                    esta_en_todas = False
-                    break
-            if esta_en_todas and dom not in comunes:
-                ar.add_last(comunes, dom)
-    else:
-        comunes = ar.new_list()
+
+    comunes = ar.new_list()
+    primera = listas_domiciliarios[0]
+    for dom in primera:
+        esta_en_todas = True
+        for lista in listas_domiciliarios[1:]:
+            if dom not in lista:
+                esta_en_todas = False
+                break
+        if esta_en_todas and dom not in comunes:
+            ar.add_last(comunes, dom)
 
     end_time = get_time()
     tiempo = str(round(delta_time(start_time, end_time), 2)) + "ms"
