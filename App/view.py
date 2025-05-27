@@ -63,7 +63,24 @@ def print_req_1(control):
         Función que imprime la solución del Requerimiento 1 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    origen = input("Ingrese la ubicación de origen (ejemplo: lat,lon): ")
+    destino = input("Ingrese la ubicación de destino (ejemplo: lat,lon): ")
+    resultado = lg.req_1(control, origen, destino)
+
+    if "mensaje" in resultado:
+        print(resultado["mensaje"])
+    else:
+        print(f"\nTiempo de ejecución: {resultado['tiempo']}")
+        print(f"Cantidad de puntos en el camino: {resultado['cantidad_puntos']}")
+        print("Secuencia de ubicaciones:")
+        for punto in resultado["secuencia_ubicaciones"]:
+            print(f"  - {punto}")
+        print("Restaurantes en el camino:")
+        for rest in resultado["restaurantes"]:
+            print(f"  - {rest}")
+        print("Domiciliarios en el camino:")
+        for dom in resultado["domiciliarios"]:
+            print(f"  - {dom}")
 
 
 def print_req_2(control):
@@ -79,7 +96,16 @@ def print_req_3(control):
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    punto = input("Ingrese la ubicación (ejemplo: lat,lon): ")
+    resultado = lg.req_3(control, punto)
+
+    if "mensaje" in resultado:
+        print(resultado["mensaje"])
+    else:
+        print(f"\nTiempo de ejecución: {resultado['tiempo']}")
+        print(f"Domiciliario con más pedidos: {resultado['domiciliario_mas_popular']}")
+        print(f"Total de pedidos realizados por ese domiciliario: {resultado['pedidos_totales']}")
+        print(f"Tipo de vehículo más usado por ese domiciliario: {resultado['vehiculo_mas_usado']}")
 
 
 def print_req_4(control):
@@ -87,7 +113,20 @@ def print_req_4(control):
         Función que imprime la solución del Requerimiento 4 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 4
-    pass
+    punto_a = input("Ingrese la ubicación de inicio (ejemplo: lat,lon): ")
+    punto_b = input("Ingrese la ubicación de destino (ejemplo: lat,lon): ")
+    resultado = lg.req_4(control, punto_a, punto_b)
+
+    if "mensaje" in resultado:
+        print(resultado["mensaje"])
+    else:
+        print(f"\nTiempo de ejecución: {resultado['tiempo']}")
+        print("Camino simple encontrado:")
+        for punto in resultado["camino_simple"]:
+            print(f"  - {punto}")
+        print("Domiciliarios comunes en el camino:")
+        for dom in resultado["domiciliarios_comunes"]:
+            print(f"  - {dom}")
 
 
 def print_req_5(control):

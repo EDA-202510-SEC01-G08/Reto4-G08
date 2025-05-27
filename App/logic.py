@@ -4,7 +4,7 @@ from DataStructures.Graph import digraph as gr
 from DataStructures.List import single_linked_list as lt
 from DataStructures.Map import map_linear_probing as mp  
 from DataStructures import list as lt
-from DataStructures.List import array as arr
+from DataStructures.List import array_list as ar
 from DataStructures.Graph import bfs as bfs
 from DataStructures.Graph import dfs as dfs
 
@@ -40,7 +40,7 @@ def load_data(catalog, filename):
             try:
                 pedido_id = fila["ID"]
                 domiciliario_id = fila["Delivery_person_ID"]
-                tipo_vehiculo = fila.get("Vehicle_type", "")
+                tipo_vehiculo = fila["Vehicle_type"]
                 tiempo = int(fila["Time_taken(min)"])
 
                 lat_rest = fila["Restaurant_latitude"]
@@ -127,7 +127,8 @@ def req_1(catalog,origen,destino):
     """
     # TODO: Modificar el requerimiento 1
     grafo = catalog["grafo"]
-    inicio_tiempo = time.process_time()
+    start_time = get_time()
+
 
     if not gr.contains_vertex(grafo, origen) or not gr.contains_vertex(grafo, destino):
         return {"mensaje": "Uno o ambos puntos no existen", "tiempo": 0}
@@ -140,27 +141,29 @@ def req_1(catalog,origen,destino):
     camino = dfs.path_to(dfs_result, destino)  # lista de ubicaciones desde origen a destino
     cantidad_puntos = len(camino)
 
-    domiciliarios = []
-    restaurantes = []
+   
+    domiciliarios = ar.new_list()
+    restaurantes = ar.new_list()
 
     for i in range(len(camino)):
         punto = camino[i]
         tabla_info = gr.get_vertex_information(grafo, punto)
         if tabla_info:
             # Recorremos todos los domiciliarios registrados en ese punto
-            values = mp.valueSet(tabla_info)
+            values = mp.value_set(tabla_info)
             for j in range(len(values)):
                 dom_id = values[j]
                 if dom_id not in domiciliarios:
-                    domiciliarios.append(dom_id)
+                    ar.add_last(domiciliarios, dom_id)
         # El primer punto es el restaurante
         if i == 0 and punto not in restaurantes:
-            restaurantes.append(punto)
+            ar.add_last(restaurantes, punto)
 
-    tiempo_total = round((time.process_time() - inicio_tiempo) * 1000, 2)
+    end_time = get_time()
+    time = str(round(delta_time(start_time, end_time),2)) + "ms"
 
     return {
-        "tiempo": tiempo_total,
+        "tiempo": time,
         "cantidad_puntos": cantidad_puntos,
         "domiciliarios": domiciliarios,
         "secuencia_ubicaciones": camino,
@@ -187,57 +190,53 @@ def req_3(catalog, punto):
     if not gr.contains_vertex(grafo, punto):
         return {
             "mensaje": "El punto no existe en el grafo",
-            "tiempo": 0
+            "tiempo": "0ms"
         }
 
     tabla_pedidos = gr.get_vertex_information(grafo, punto)
-    conteo = {}
-    vehiculos = {}
+    conteo = {}     # clave: domiciliario_id, valor: cantidad de pedidos
+    vehiculos = {}  # clave: domiciliario_id, valor: dict con tipos de vehículo y conteo
 
     for pedido_id in mp.key_set(tabla_pedidos):
-        domiciliario_id = mp.get(tabla_pedidos, pedido_id)
+        datos = mp.get(tabla_pedidos, pedido_id)
+        dom_id = datos["domiciliario_id"]
+        vehiculo = datos["vehiculo"]
 
-        # Separar ID y tipo de vehículo si viene junto (ajustar según datos)
-        if "-" in domiciliario_id:
-            dom_id, vehiculo = domiciliario_id
-        else:
-            dom_id, vehiculo = domiciliario_id, "desconocido"
-
-        # Contar cantidad de pedidos
         if dom_id not in conteo:
             conteo[dom_id] = 0
             vehiculos[dom_id] = {}
+
         conteo[dom_id] += 1
 
-        # Contar tipos de vehículo
         if vehiculo not in vehiculos[dom_id]:
             vehiculos[dom_id][vehiculo] = 1
         else:
             vehiculos[dom_id][vehiculo] += 1
 
-    # Buscar domiciliario con más pedidos
-    max_dom, max_pedidos = None, 0
-    for domi, cant in conteo.items():
-        if cant > max_pedidos:
+    # Encontrar domiciliario con más pedidos
+    max_dom = None
+    max_pedidos = 0
+    for domi in conteo:
+        if conteo[domi] > max_pedidos:
             max_dom = domi
-            max_pedidos = cant
+            max_pedidos = conteo[domi]
 
-    # Tipo de vehículo más usado
+    # Tipo de vehículo más usado por ese domiciliario
     tipo_vehiculo = None
     max_veces = 0
-    for veh, veces in vehiculos[max_dom]:
-        veces = vehiculos[max_dom][veh]
+    for veh, veces in vehiculos[max_dom].items():
         if veces > max_veces:
             tipo_vehiculo = veh
             max_veces = veces
+
     end_time = get_time()
-    time = str(round(delta_time(start_time, end_time),2)) + "ms"
+    time = str(round(delta_time(start_time, end_time), 2)) + "ms"
 
     return {
         "domiciliario_mas_popular": max_dom,
         "pedidos_totales": max_pedidos,
         "vehiculo_mas_usado": tipo_vehiculo,
-        "tiempo": time  
+        "tiempo": time
     }
 
 
@@ -252,52 +251,54 @@ def req_4(catalog, punto_a, punto_b):
     if not gr.contains_vertex(grafo, punto_a) or not gr.contains_vertex(grafo, punto_b):
         return {
             "mensaje": "Uno o ambos puntos no existen en el grafo",
-            "tiempo": 0
+            "tiempo": "0ms"
         }
 
-    # Suponiendo que ya tienes BFS implementado
+    # Obtener recorrido desde punto_a usando BFS
     bfs_result = bfs.bfs(grafo, punto_a)
 
     if not bfs.has_path_to(bfs_result, punto_b):
         return {
             "mensaje": "No hay camino entre los dos puntos",
-            "tiempo": 0
+            "tiempo": "0ms"
         }
 
-    camino = bfs.path_to(bfs_result, punto_b)  
-    listas_domiciliarios = []
+    camino = bfs.path_to(bfs_result, punto_b)
+    listas_domiciliarios = ar.new_list()
 
     for punto in camino:
         pedidos = gr.get_vertex_information(grafo, punto)
-        domis = []
+        lista = []
         for pedido in mp.key_set(pedidos):
             info = mp.get(pedidos, pedido)
-            dom_id = info["domiciliario_id"] if isinstance(info, dict) else info
-            if dom_id not in domis:
-                domis.append(dom_id)
-        listas_domiciliarios.append(domis)
+            dom_id = info["domiciliario_id"]
+            if dom_id not in lista:
+                ar.add_last(lista, dom_id)
+        ar.add_last(listas_domiciliarios, lista)
 
-    # Intersección de domiciliarios en todos los puntos del camino usando arrays
+    # Intersección de todas las listas sin usar set
     if listas_domiciliarios:
-        domiciliarios_comunes = set(listas_domiciliarios[0])
-        for lista in listas_domiciliarios[1:]:
-            domiciliarios_comunes = domiciliarios_comunes.intersection(lista)
-        domiciliarios_comunes = list(domiciliarios_comunes)
+        comunes = []
+        primera = listas_domiciliarios[0]
+        for dom in primera:
+            esta_en_todas = True
+            for lista in listas_domiciliarios[1:]:
+                if dom not in lista:
+                    esta_en_todas = False
+                    break
+            if esta_en_todas and dom not in comunes:
+                ar.add_last(comunes, dom)
     else:
-        domiciliarios_comunes = []
+        comunes = ar.new_list()
 
     end_time = get_time()
-    time = str(round(delta_time(start_time, end_time),2)) + "ms"
+    tiempo = str(round(delta_time(start_time, end_time), 2)) + "ms"
+
     return {
         "camino_simple": list(camino),
-        "domiciliarios_comunes": domiciliarios_comunes,
-        "tiempo": time  
+        "domiciliarios_comunes": comunes,
+        "tiempo": tiempo
     }
-
-    
-
-
-    
 
 
 
