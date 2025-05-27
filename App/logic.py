@@ -6,6 +6,7 @@ from DataStructures.Map import map_linear_probing as mp
 from DataStructures import list as lt
 from DataStructures.List import array as arr
 from DataStructures.Graph import bfs as bfs
+from DataStructures.Graph import dfs as dfs
 
 def new_logic():
     """
@@ -120,12 +121,51 @@ def get_data(catalog, id):
     pass
 
 
-def req_1(catalog):
+def req_1(catalog,origen,destino):
     """
     Retorna el resultado del requerimiento 1
     """
     # TODO: Modificar el requerimiento 1
-    pass
+    grafo = catalog["grafo"]
+    inicio_tiempo = time.process_time()
+
+    if not gr.contains_vertex(grafo, origen) or not gr.contains_vertex(grafo, destino):
+        return {"mensaje": "Uno o ambos puntos no existen", "tiempo": 0}
+
+    dfs_result = dfs.dfs(grafo, origen)
+
+    if not dfs.has_path_to(dfs_result, destino):
+        return {"mensaje": "No hay camino entre los puntos", "tiempo": 0}
+
+    camino = dfs.path_to(dfs_result, destino)  # lista de ubicaciones desde origen a destino
+    cantidad_puntos = len(camino)
+
+    domiciliarios = []
+    restaurantes = []
+
+    for i in range(len(camino)):
+        punto = camino[i]
+        tabla_info = gr.get_vertex_information(grafo, punto)
+        if tabla_info:
+            # Recorremos todos los domiciliarios registrados en ese punto
+            values = mp.valueSet(tabla_info)
+            for j in range(len(values)):
+                dom_id = values[j]
+                if dom_id not in domiciliarios:
+                    domiciliarios.append(dom_id)
+        # El primer punto es el restaurante
+        if i == 0 and punto not in restaurantes:
+            restaurantes.append(punto)
+
+    tiempo_total = round((time.process_time() - inicio_tiempo) * 1000, 2)
+
+    return {
+        "tiempo": tiempo_total,
+        "cantidad_puntos": cantidad_puntos,
+        "domiciliarios": domiciliarios,
+        "secuencia_ubicaciones": camino,
+        "restaurantes": restaurantes
+    }
 
 
 def req_2(catalog):
