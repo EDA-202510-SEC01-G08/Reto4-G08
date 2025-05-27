@@ -1,13 +1,13 @@
 import time
 import csv
 from DataStructures.Graph import digraph as gr     
-from DataStructures.List import single_linked_list as lt
 from DataStructures.Map import map_linear_probing as mp  
 from DataStructures import list as lt
 from DataStructures.List import array_list as ar
 from DataStructures.Graph import bfs as bfs
 from DataStructures.Graph import dfs as dfs
 from DataStructures.Stack import stack as st
+from DataStructures.Graph import dijsktra_structure as ds
 
 def new_logic():
     """
@@ -44,10 +44,10 @@ def load_data(catalog, filename):
                 tipo_vehiculo = fila["Vehicle_type"]
                 tiempo = int(fila["Time_taken(min)"])
 
-                lat_rest = fila["Restaurant_latitude"]
-                lon_rest = fila["Restaurant_longitude"]
-                lat_dest = fila["Delivery_location_latitude"]
-                lon_dest = fila["Delivery_location_longitude"]
+                lat_rest = round(float(fila["Restaurant_latitude"]), 4)
+                lon_rest = round(float(fila["Restaurant_longitude"]), 4)
+                lat_dest = round(float(fila["Delivery_location_latitude"]), 4)
+                lon_dest = round(float(fila["Delivery_location_longitude"]), 4)
 
                 origen = str(lat_rest) + "," + str(lon_rest)
                 destino = str(lat_dest) + "," + str(lon_dest)
@@ -298,14 +298,39 @@ def req_5(catalog):
     # TODO: Modificar el requerimiento 5
     pass
 
-def req_6(catalog):
+def req_6(catalog, origen):
     """
     Retorna el resultado del requerimiento 6
     """
     # TODO: Modificar el requerimiento 6
-    pass
+    startf_time = get_time()
+    graph = catalog["grafo"]
+    dijkstra_structure = ds.dijkstra(graph, origen)
+    num_ubicaciones = dijkstra_structure["visited"]["size"]
+    if num_ubicaciones == 0:
+        return None
+    tiempo_max = 0
+    key_max = None
+    alcanzables = ar.new_list()
+    for key in dijkstra_structure["visited"]["table"]["elements"]:
+        if key is not None and key != "__EMPTY__":
+            tiempo = ds.dist_to(key, dijkstra_structure)
+            if tiempo > tiempo_max:
+                tiempo_max = tiempo
+                key_max = key
+            ar.add_last(alcanzables, key)
+    ordered_list = ar.merge_sort(alcanzables, sort_crit_6)
+    path_max = ds.path_to(key_max, dijkstra_structure)
+    end_time = get_time()
+    tiempo = str(round(delta_time(startf_time, end_time), 2)) + "ms"
+    return [tiempo, num_ubicaciones, ordered_list, path_max, tiempo_max]
 
-
+def sort_crit_6(element1, element2):
+    if element1 > element2:
+        return True
+    else:
+        return False
+    
 def req_7(catalog):
     """
     Retorna el resultado del requerimiento 7
