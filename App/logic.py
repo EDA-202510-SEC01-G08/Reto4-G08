@@ -4,7 +4,8 @@ from DataStructures.Graph import digraph as gr
 from DataStructures.List import single_linked_list as lt
 from DataStructures.Map import map_linear_probing as mp  
 from DataStructures import list as lt
-from DataStructures import array as arr
+from DataStructures.List import array as arr
+from DataStructures.Graph import bfs as bfs
 
 def new_logic():
     """
@@ -38,6 +39,7 @@ def load_data(catalog, filename):
             try:
                 pedido_id = fila["ID"]
                 domiciliario_id = fila["Delivery_person_ID"]
+                tipo_vehiculo = fila.get("Vehicle_type", "")
                 tiempo = int(fila["Time_taken(min)"])
 
                 lat_rest = fila["Restaurant_latitude"]
@@ -52,18 +54,18 @@ def load_data(catalog, filename):
                 if not gr.contains_vertex(graph, origen):
                     tabla_origen = mp.new_map(10000, 0.5)
                     gr.insert_vertex(graph, origen, tabla_origen)
-                    mp.put(tabla_origen, pedido_id, domiciliario_id)
+                    mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
                 else:
                     tabla_origen = gr.get_vertex_information(graph, origen)
-                    mp.put(tabla_origen, pedido_id, domiciliario_id)
+                    mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
 
                 if not gr.contains_vertex(graph, destino):
                     tabla_destino = mp.new_map()
                     gr.insert_vertex(graph, destino, tabla_destino)
-                    mp.put(tabla_destino, pedido_id, domiciliario_id)
+                    mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
                 else:
                     tabla_destino = gr.get_vertex_information(graph, destino)
-                    mp.put(tabla_destino, pedido_id, domiciliario_id)
+                    mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
 
                 # Clave para guardar la acumulación de tiempos
                 clave_arista = origen + "->" + destino
@@ -134,20 +136,129 @@ def req_2(catalog):
     pass
 
 
-def req_3(catalog):
+def req_3(catalog, punto):
     """
     Retorna el resultado del requerimiento 3
     """
     # TODO: Modificar el requerimiento 3
-    pass
+    start_time = get_time()
+    grafo = catalog["grafo"]
+
+    if not gr.contains_vertex(grafo, punto):
+        return {
+            "mensaje": "El punto no existe en el grafo",
+            "tiempo": 0
+        }
+
+    tabla_pedidos = gr.get_vertex_information(grafo, punto)
+    conteo = {}
+    vehiculos = {}
+
+    for pedido_id in mp.key_set(tabla_pedidos):
+        domiciliario_id = mp.get(tabla_pedidos, pedido_id)
+
+        # Separar ID y tipo de vehículo si viene junto (ajustar según datos)
+        if "-" in domiciliario_id:
+            dom_id, vehiculo = domiciliario_id
+        else:
+            dom_id, vehiculo = domiciliario_id, "desconocido"
+
+        # Contar cantidad de pedidos
+        if dom_id not in conteo:
+            conteo[dom_id] = 0
+            vehiculos[dom_id] = {}
+        conteo[dom_id] += 1
+
+        # Contar tipos de vehículo
+        if vehiculo not in vehiculos[dom_id]:
+            vehiculos[dom_id][vehiculo] = 1
+        else:
+            vehiculos[dom_id][vehiculo] += 1
+
+    # Buscar domiciliario con más pedidos
+    max_dom, max_pedidos = None, 0
+    for domi, cant in conteo.items():
+        if cant > max_pedidos:
+            max_dom = domi
+            max_pedidos = cant
+
+    # Tipo de vehículo más usado
+    tipo_vehiculo = None
+    max_veces = 0
+    for veh, veces in vehiculos[max_dom]:
+        veces = vehiculos[max_dom][veh]
+        if veces > max_veces:
+            tipo_vehiculo = veh
+            max_veces = veces
+    end_time = get_time()
+    time = str(round(delta_time(start_time, end_time),2)) + "ms"
+
+    return {
+        "domiciliario_mas_popular": max_dom,
+        "pedidos_totales": max_pedidos,
+        "vehiculo_mas_usado": tipo_vehiculo,
+        "tiempo": time  
+    }
 
 
-def req_4(catalog):
+def req_4(catalog, punto_a, punto_b):
     """
     Retorna el resultado del requerimiento 4
     """
     # TODO: Modificar el requerimiento 4
-    pass
+    start_time = get_time()
+    grafo = catalog["grafo"]
+
+    if not gr.contains_vertex(grafo, punto_a) or not gr.contains_vertex(grafo, punto_b):
+        return {
+            "mensaje": "Uno o ambos puntos no existen en el grafo",
+            "tiempo": 0
+        }
+
+    # Suponiendo que ya tienes BFS implementado
+    bfs_result = bfs.bfs(grafo, punto_a)
+
+    if not bfs.has_path_to(bfs_result, punto_b):
+        return {
+            "mensaje": "No hay camino entre los dos puntos",
+            "tiempo": 0
+        }
+
+    camino = bfs.path_to(bfs_result, punto_b)  
+    listas_domiciliarios = []
+
+    for punto in camino:
+        pedidos = gr.get_vertex_information(grafo, punto)
+        domis = []
+        for pedido in mp.key_set(pedidos):
+            info = mp.get(pedidos, pedido)
+            dom_id = info["domiciliario_id"] if isinstance(info, dict) else info
+            if dom_id not in domis:
+                domis.append(dom_id)
+        listas_domiciliarios.append(domis)
+
+    # Intersección de domiciliarios en todos los puntos del camino usando arrays
+    if listas_domiciliarios:
+        domiciliarios_comunes = set(listas_domiciliarios[0])
+        for lista in listas_domiciliarios[1:]:
+            domiciliarios_comunes = domiciliarios_comunes.intersection(lista)
+        domiciliarios_comunes = list(domiciliarios_comunes)
+    else:
+        domiciliarios_comunes = []
+
+    end_time = get_time()
+    time = str(round(delta_time(start_time, end_time),2)) + "ms"
+    return {
+        "camino_simple": list(camino),
+        "domiciliarios_comunes": domiciliarios_comunes,
+        "tiempo": time  
+    }
+
+    
+
+
+    
+
 
 
 def req_5(catalog):
