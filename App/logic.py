@@ -222,12 +222,7 @@ def req_3(catalog, punto):
 
     return [max_dom, max_pedidos, tipo_vehiculo, time] 
 
-{
-        "domiciliario_mas_popular": max_dom,
-        "pedidos_totales": max_pedidos,
-        "vehiculo_mas_usado": tipo_vehiculo,
-        "tiempo": time
-    }
+
 
 
 def req_4(catalog, punto_a, punto_b):
