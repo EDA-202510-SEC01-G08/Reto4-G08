@@ -154,17 +154,7 @@ def req_1(catalog,origen,destino):
             if domiciliario not in domiciliarios["elements"]:
                 ar.add_last(domiciliarios, domiciliario)
 
-    for i in range(cantidad_puntos):
-        punto = ar.get_element(camino,i)
-        tabla_info = gr.get_vertex_information(grafo, punto)
-        if tabla_info is not None:
-            info_pedidos = mp.value_set(tabla_info[0])
-            if info_pedidos is not None and "elements" in info_pedidos:
-                for domicilio in info_pedidos["elements"]:
-                    domiciliario = domicilio["domiciliario_id"]
-                    if domiciliario not in domiciliarios["elements"]:
-                        ar.add_last(domiciliarios, domiciliario)
-
+    
     end_time = get_time()
     time = str(round(delta_time(start_time, end_time),2)) + "ms"
 
