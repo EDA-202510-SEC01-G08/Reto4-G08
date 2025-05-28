@@ -1,6 +1,7 @@
 from DataStructures.Map import map_linear_probing as map
 from DataStructures.Priority_queue import priority_queue as pq
 from DataStructures.Queue import queue as q
+from DataStructures.Graph import digraph as dg
 
 
 def new_prim_structure(source, g_order):
@@ -28,3 +29,27 @@ def new_prim_structure(source, g_order):
     }
 
     return structure
+
+def eager_prim(my_graph, source):
+    prim_structure = new_prim_structure(source, dg.order(my_graph))
+    for v in dg.vertices(my_graph):
+        map.put(prim_structure["dist_to"], v, float("inf"))
+        map.put(prim_structure["marked"], v, False)
+    map.put(prim_structure["dist_to"], source, 0)
+    map.put(prim_structure["edge_from"], source, None)
+    pq.insert(prim_structure["pq"], (source, 0))
+
+    while not pq.is_empty(prim_structure["pq"]):
+        vertex = pq.get_first_priority(prim_structure["pq"])[0]
+        map.put(prim_structure["marked"], vertex, True)
+        adjacents = dg.adjacents(my_graph, vertex)
+        for adj in adjacents:
+            if not map.contains(prim_structure["marked"], adj):
+                edge = dg.get_edge(my_graph, vertex, adj)
+                weight = edge["weight"]
+                if weight < map.get(prim_structure["dist_to"], adj):
+                    map.put(prim_structure["dist_to"], adj, weight)
+                    map.put(prim_structure["edge_from"], adj, vertex)
+                    pq.insert(prim_structure["pq"], (adj, weight))
+    return prim_structure
+                    

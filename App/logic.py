@@ -8,6 +8,7 @@ from DataStructures.Graph import bfs as bfs
 from DataStructures.Graph import dfs as dfs
 from DataStructures.Stack import stack as st
 from DataStructures.Graph import dijsktra_structure as ds
+from DataStructures.Graph import prim_structure as ps
 
 def new_logic():
     """
@@ -330,13 +331,62 @@ def sort_crit_6(element1, element2):
         return True
     else:
         return False
-    
-def req_7(catalog):
+def req_7(catalog, origen, domiciliario):
+    graph = catalog["grafo"]
+    start_time = get_time()
+    if not gr.contains_vertex(graph, origen):
+        return None
+    else:
+        prim = req_7_mask(graph, origen, domiciliario, ps.eager_prim(graph, origen))
+        marked = prim["marked"]
+        num_ubicaciones = mp.size(marked)
+        if num_ubicaciones <= 1:
+            return 0
+        else:
+            visited = ar.new_list()
+            for i in range(num_ubicaciones):
+                vertex = ar.get_element(marked["table"], i)["key"]
+                if vertex is not None and vertex != "__EMPTY__":
+                    ar.add_last(visited, vertex)
+            ordered_list = ar.merge_sort(visited, sort_crit_6)
+            tiempo_mst = 0
+            dist_to = prim["dist_to"]["table"]["elements"]
+            for z in dist_to:
+                if z is not None and z != "__EMPTY__":
+                    tiempo_mst += z
+            end_time = get_time()
+            tiempo = str(round(delta_time(start_time, end_time), 2)) + "ms"
+            return [tiempo, num_ubicaciones, ordered_list, tiempo_mst]
+
+def req_7_mask(grafo, origen, domiciliario, mst):
     """
     Retorna el resultado del requerimiento 7
     """
     # TODO: Modificar el requerimiento 7
-    pass
+    if not gr.contains_vertex(grafo, origen):
+        return None
+    else:
+        visited = mst["marked"]
+        good_prim = True
+        x = 0
+        while x < mp.size(visited) and good_prim == True:
+            vertex = ar.get_element(visited["table"], x)
+            if vertex is not None and vertex != "__EMPTY__":
+                tabla_info = gr.get_vertex_information(grafo, vertex)[0]
+                pedidos = mp.key_set(tabla_info)
+            
+                i = 0
+                while i < pedidos["size"] and good_prim == True:
+                    ped_id = ar.get_element(pedidos["elements"],i)
+                    pedido_info = mp.get(tabla_info, ped_id)
+                    if pedido_info["domiciliario_id"] != domiciliario:
+                        good_prim = False
+        if good_prim == False:
+            gr.remove_vertex(grafo, vertex)
+            new_mst = ps.eager_prim(grafo, origen)
+            return req_7_mask(grafo, origen, domiciliario, new_mst)
+        else: 
+            return mst
 
 
 def req_8(catalog):
