@@ -112,7 +112,9 @@ def print_req_4(control):
     punto_b = input("Ingrese la ubicación de destino (ejemplo: lat_lon): ")
     resultado = lg.req_4(control, punto_a, punto_b)
 
-    if "mensaje" in resultado:
+    if resultado is None:
+        print("No se encontró un camino entre los puntos dados.")
+    elif "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
         headers = ["Camino_simple", "Domiciliarios_comunes", "Tiempo"]
