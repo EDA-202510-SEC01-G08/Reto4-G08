@@ -69,18 +69,10 @@ def print_req_1(control):
     if "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
-        print(f"\nTiempo de ejecución: {resultado['tiempo']}")
-        print(f"Cantidad de puntos en el camino: {resultado['cantidad_puntos']}")
-        print("Secuencia de ubicaciones:")
-        for punto in resultado["secuencia_ubicaciones"]:
-            print(f"  - {punto}")
-        print("Restaurantes en el camino:")
-        for rest in resultado["restaurantes"]:
-            print(f"  - {rest}")
-        print("Domiciliarios en el camino:")
-        for dom in resultado["domiciliarios"]:
-            print(f"  - {dom}")
-
+        headers = ["Tiempo", "Cantidad_de_puntos", "Dominiciliarios", "Secuencia_de_ubicaciones","Restaurante"]
+        data = resultado[0]["elements"]
+        print(f"\n MENSAJE")
+        print(tb.tabulate(data, headers, tablefmt="pretty"))
 
 def print_req_2(control):
     """
@@ -101,10 +93,10 @@ def print_req_3(control):
     if "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
-        print(f"\nTiempo de ejecución: {resultado['tiempo']}")
-        print(f"Domiciliario con más pedidos: {resultado['domiciliario_mas_popular']}")
-        print(f"Total de pedidos realizados por ese domiciliario: {resultado['pedidos_totales']}")
-        print(f"Tipo de vehículo más usado por ese domiciliario: {resultado['vehiculo_mas_usado']}")
+        headers = ["Domiciliario_mas_popular", "Pedidos_totales", "Vehiculo_mas_usado", "Tiempo"]
+        data = resultado[0]["elements"]
+        print(f"\n MENSAJE")
+        print(tb.tabulate(data, headers, tablefmt="pretty"))
 
 
 def print_req_4(control):
@@ -119,13 +111,11 @@ def print_req_4(control):
     if "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
-        print(f"\nTiempo de ejecución: {resultado['tiempo']}")
-        print("Camino simple encontrado:")
-        for punto in resultado["camino_simple"]:
-            print(f"  - {punto}")
-        print("Domiciliarios comunes en el camino:")
-        for dom in resultado["domiciliarios_comunes"]:
-            print(f"  - {dom}")
+        headers = ["Camino_simple", "Domiciliarios_comunes", "Tiempo"]
+        data = resultado[0]["elements"]
+        print(f"\n MENSAJE")
+        print(tb.tabulate(data, headers, tablefmt="pretty"))
+   
 
 
 def print_req_5(control):

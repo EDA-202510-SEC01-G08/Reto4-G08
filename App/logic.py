@@ -157,13 +157,8 @@ def req_1(catalog,origen,destino):
     end_time = get_time()
     time = str(round(delta_time(start_time, end_time),2)) + "ms"
 
-    return {
-        "tiempo": time,
-        "cantidad_puntos": cantidad_puntos,
-        "domiciliarios": domiciliarios,
-        "secuencia_ubicaciones": camino,
-        "restaurantes": restaurantes
-    }
+    return [time, cantidad_puntos, domiciliarios, camino, restaurantes]
+   
 
 
 def req_2(catalog):
@@ -225,7 +220,9 @@ def req_3(catalog, punto):
     end_time = get_time()
     time = str(round(delta_time(start_time, end_time), 2)) + "ms"
 
-    return {
+    return [max_dom, max_pedidos, tipo_vehiculo, time] 
+
+{
         "domiciliario_mas_popular": max_dom,
         "pedidos_totales": max_pedidos,
         "vehiculo_mas_usado": tipo_vehiculo,
@@ -244,7 +241,6 @@ def req_4(catalog, punto_a, punto_b):
     if not gr.contains_vertex(grafo, punto_a) or not gr.contains_vertex(grafo, punto_b):
         return None
 
-    # Obtener recorrido desde punto_a usando BFS
     bfs_result = bfs.bfs(grafo, punto_a)
 
     if not bfs.has_path_to(bfs_result, punto_b):
@@ -253,37 +249,58 @@ def req_4(catalog, punto_a, punto_b):
     camino = bfs.path_to(bfs_result, punto_b)
     listas_domiciliarios = ar.new_list()
 
-    for punto in camino["elements"]:
+    tam_camino = ar.size(camino)
+    i = 1
+    while i <= tam_camino:
+        punto = ar.get_element(camino, i)
         pedidos = gr.get_vertex_information(grafo, punto)[0]
         lista = ar.new_list()
         info_ped = mp.value_set(pedidos)
-        for pedido in info_ped:
+
+        j = 1
+        while j <= ar.size(info_ped):
+            pedido = ar.get_element(info_ped, j)
             dom_id = pedido["domiciliario_id"]
-            if dom_id not in lista["elements"]:
+            if not ar.is_present(lista, dom_id):
                 ar.add_last(lista, dom_id)
+            j += 1
+
         ar.add_last(listas_domiciliarios, lista)
+        i += 1
 
-    # Intersección de todas las listas sin usar set
-
+    # Intersección
     comunes = ar.new_list()
-    primera = listas_domiciliarios[0]
-    for dom in primera:
+    primera_lista = ar.get_element(listas_domiciliarios, 1)
+    tam_primera = ar.size(primera_lista)
+
+    i = 1
+    while i <= tam_primera:
+        dom = ar.get_element(primera_lista, i)
         esta_en_todas = True
-        for lista in listas_domiciliarios[1:]:
-            if dom not in lista:
+
+        j = 2
+        while j <= ar.size(listas_domiciliarios) and esta_en_todas:
+            actual = ar.get_element(listas_domiciliarios, j)
+            if not ar.is_present(actual, dom):
                 esta_en_todas = False
-                break
-        if esta_en_todas and dom not in comunes:
+            j += 1
+
+        if esta_en_todas and not ar.is_present(comunes, dom):
             ar.add_last(comunes, dom)
+
+        i += 1
 
     end_time = get_time()
     tiempo = str(round(delta_time(start_time, end_time), 2)) + "ms"
 
-    return {
-        "camino_simple": list(camino),
-        "domiciliarios_comunes": comunes,
-        "tiempo": tiempo
-    }
+    # Convertir camino a arreglo legible
+    camino_resultado = ar.new_list()
+    i = 1
+    while i <= ar.size(camino):
+        ar.add_last(camino_resultado, ar.get_element(camino, i))
+        i += 1
+
+    return [camino_resultado, comunes, tiempo]
 
 
 
