@@ -62,17 +62,19 @@ def print_req_1(control):
         Función que imprime la solución del Requerimiento 1 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 1
-    origen = input("Ingrese la ubicación de origen (ejemplo: lat,lon): ")
-    destino = input("Ingrese la ubicación de destino (ejemplo: lat,lon): ")
+    origen = input("Ingrese la ubicación de origen (ejemplo: lat_lon): ")
+    destino = input("Ingrese la ubicación de destino (ejemplo: lat_lon): ")
     resultado = lg.req_1(control, origen, destino)
 
-    if "mensaje" in resultado:
+    if resultado is None:
+        print("No se encontró un camino entre los puntos dados.")
+        
+    elif "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
         headers = ["Tiempo", "Cantidad_de_puntos", "Dominiciliarios", "Secuencia_de_ubicaciones","Restaurante"]
-        data = resultado[0]["elements"]
         print(f"\n MENSAJE")
-        print(tb.tabulate(data, headers, tablefmt="pretty"))
+        print(tb.tabulate([resultado], headers, tablefmt="pretty"))
 
 def print_req_2(control):
     """
@@ -87,16 +89,18 @@ def print_req_3(control):
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
-    punto = input("Ingrese la ubicación (ejemplo: lat,lon): ")
+    punto = input("Ingrese la ubicación (ejemplo: lat_lon): ")
     resultado = lg.req_3(control, punto)
 
-    if "mensaje" in resultado:
+    if resultado is None:
+        print("No se encontró información para la ubicación dada.")
+
+    elif "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
         headers = ["Domiciliario_mas_popular", "Pedidos_totales", "Vehiculo_mas_usado", "Tiempo"]
-        data = resultado[0]["elements"]
         print(f"\n MENSAJE")
-        print(tb.tabulate(data, headers, tablefmt="pretty"))
+        print(tb.tabulate([resultado], headers, tablefmt="pretty"))
 
 
 def print_req_4(control):
@@ -104,17 +108,16 @@ def print_req_4(control):
         Función que imprime la solución del Requerimiento 4 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 4
-    punto_a = input("Ingrese la ubicación de inicio (ejemplo: lat,lon): ")
-    punto_b = input("Ingrese la ubicación de destino (ejemplo: lat,lon): ")
+    punto_a = input("Ingrese la ubicación de inicio (ejemplo: lat_lon): ")
+    punto_b = input("Ingrese la ubicación de destino (ejemplo: lat_lon): ")
     resultado = lg.req_4(control, punto_a, punto_b)
 
     if "mensaje" in resultado:
         print(resultado["mensaje"])
     else:
         headers = ["Camino_simple", "Domiciliarios_comunes", "Tiempo"]
-        data = resultado[0]["elements"]
         print(f"\n MENSAJE")
-        print(tb.tabulate(data, headers, tablefmt="pretty"))
+        print(tb.tabulate([resultado], headers, tablefmt="pretty"))
    
 
 

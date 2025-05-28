@@ -49,8 +49,8 @@ def load_data(catalog, filename):
                 lat_dest = round(float(fila["Delivery_location_latitude"]), 4)
                 lon_dest = round(float(fila["Delivery_location_longitude"]), 4)
 
-                origen = str(lat_rest) + "," + str(lon_rest)
-                destino = str(lat_dest) + "," + str(lon_dest)
+                origen = str(lat_rest) + "_" + str(lon_rest)
+                destino = str(lat_dest) + "_" + str(lon_dest)
 
                 # Crear vértices si no existen
                 if not gr.contains_vertex(graph, origen):
@@ -153,6 +153,17 @@ def req_1(catalog,origen,destino):
             domiciliario = domicilio["domiciliario_id"]
             if domiciliario not in domiciliarios["elements"]:
                 ar.add_last(domiciliarios, domiciliario)
+
+    for i in range(cantidad_puntos):
+        punto = ar.get_element(camino,i)
+        tabla_info = gr.get_vertex_information(grafo, punto)
+        if tabla_info is not None:
+            info_pedidos = mp.value_set(tabla_info[0])
+            if info_pedidos is not None and "elements" in info_pedidos:
+                for domicilio in info_pedidos["elements"]:
+                    domiciliario = domicilio["domiciliario_id"]
+                    if domiciliario not in domiciliarios["elements"]:
+                        ar.add_last(domiciliarios, domiciliario)
 
     end_time = get_time()
     time = str(round(delta_time(start_time, end_time),2)) + "ms"
