@@ -6,8 +6,7 @@ import tabulate as tb
 from DataStructures.Graph import digraph as gr     
 from DataStructures.List import single_linked_list as lt
 from DataStructures.Map import map_linear_probing as mp  
-from DataStructures import list as lt
-from DataStructures import array as arr
+from DataStructures.List import array_list as al
 
 
 def new_logic():

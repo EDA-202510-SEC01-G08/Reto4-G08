@@ -1,8 +1,7 @@
 import time
 import csv
 from DataStructures.Graph import digraph as gr     
-from DataStructures.Map import map_linear_probing as mp  
-from DataStructures import list as lt
+from DataStructures.Map import map_linear_probing as mp 
 from DataStructures.List import array_list as ar
 from DataStructures.Graph import bfs as bfs
 from DataStructures.Graph import dfs as dfs
@@ -15,7 +14,7 @@ def new_logic():
     Crea el catalogo para almacenar las estructuras de datos
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos
-    catalog = {"grafo" : gr.new_graph(dirigido=False),
+    catalog = {"grafo" : gr.new_graph(False),
                "info_tiempo": mp.new_map(10000, 0.5)}            
     
     return catalog
@@ -35,14 +34,14 @@ def load_data(catalog, filename):
     domiciliarios = ar.new_list()
     restaurantes = ar.new_list()
     destinos = ar.new_list()
+    suma_tiempos = 0
 
     with open(filename, newline='', encoding='utf-8') as archivo:
         lector = csv.DictReader(archivo)
         for fila in lector:
-            try:
                 pedido_id = fila["ID"]
                 domiciliario_id = fila["Delivery_person_ID"]
-                tipo_vehiculo = fila["Vehicle_type"]
+                tipo_vehiculo = fila["Type_of_vehicle"]
                 tiempo = int(fila["Time_taken(min)"])
 
                 lat_rest = round(float(fila["Restaurant_latitude"]), 4)
@@ -58,8 +57,9 @@ def load_data(catalog, filename):
                     tabla_origen = mp.new_map(10000, 0.5)
                     gr.insert_vertex(graph, origen, (tabla_origen, True))
                     mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
+                    
                 else:
-                    tabla_origen = gr.get_vertex_information(graph, origen)
+                    tabla_origen = gr.get_vertex_information(graph, origen)[0]
                     mp.put(tabla_origen, pedido_id, {"domiciliario_id": domiciliario_id, "vehiculo": tipo_vehiculo})
 
                 if not gr.contains_vertex(graph, destino):
@@ -76,17 +76,18 @@ def load_data(catalog, filename):
 
                 # Agregar o actualizar la arista
                 if gr.get_edge(graph, origen, destino) is None:
+                    gr.add_edge(graph, origen, destino, tiempo)
                     mp.put(info_tiempo, clave_arista, [tiempo, 1])
                 else:
-                    mp.remove(graph["vertices"][mp.get(graph["vertices"], origen)]["adjacents"], destino)
-                    mp.remove(graph["vertices"][mp.get(graph["vertices"], destino)]["adjacents"], origen)
+                    v_origen = mp.get(graph["vertices"], origen)
+                    v_destino = mp.get(graph["vertices"], destino)
+                    mp.remove(v_origen["adjacents"], destino)
+                    mp.remove(v_destino["adjacents"], origen)
                     suma, cuenta = mp.get(info_tiempo, clave_arista)
                     suma += tiempo
                     cuenta += 1
                     promedio = suma // cuenta
                     mp.put(info_tiempo, clave_arista, [suma, cuenta])
-                    gr.add_edge(catalog, origen, destino, promedio)
-
                 total_domicilios += 1
                 suma_tiempos += tiempo
                 if domiciliario_id not in domiciliarios["elements"]:
@@ -95,14 +96,8 @@ def load_data(catalog, filename):
                     ar.add_last(restaurantes, origen)
                 if destino not in destinos["elements"]:
                     ar.add_last(destinos, destino)
-
-            except:
-                # Por si hay filas con errores 
-                continue
     # Número de arcos (no dirigidos, contar solo una vez)
-    num_arcos = len(graph["edges"])//2 if hasattr(gr, 'num_edges') else len(set(
-        tuple(sorted(edge)) for edge in graph["edges"]
-    ))  
+    num_arcos = graph["num_edges"] // 2
 
     return {
         "total_domicilios": total_domicilios,
